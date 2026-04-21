@@ -1,0 +1,16 @@
+[project]
+name = "query-builder"
+version = "0.1.0"
+description = "REST API that builds SQL queries for Athena and SQLite from structured field and filter inputs"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.136.0",
+    "pydantic>=2.13.3",
+    "uvicorn[standard]>=0.45.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.0.3",
+]
