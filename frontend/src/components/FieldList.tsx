@@ -52,27 +52,29 @@ export function FieldList({ fields, onChange }: Props) {
 
       <div className="flex flex-col gap-2">
         {fields.map((f) => (
-          <div key={f.id} className="flex gap-2 items-center">
-            <input
-              placeholder="table"
-              value={f.table}
-              maxLength={MAX_LEN}
-              onChange={(e) => update(f.id, "table", e.target.value)}
-              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-            />
-            <span className="text-gray-400 text-sm">.</span>
-            <input
-              placeholder="column"
-              value={f.column}
-              maxLength={MAX_LEN}
-              onChange={(e) => update(f.id, "column", e.target.value)}
-              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-            />
+          <div key={f.id} className="flex gap-2 items-start">
+            <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-2 min-w-0 sm:bg-transparent sm:border-0 sm:rounded-none sm:p-0 bg-gray-50 border border-gray-200 rounded-lg p-2">
+              <input
+                placeholder="table"
+                value={f.table}
+                maxLength={MAX_LEN}
+                onChange={(e) => update(f.id, "table", e.target.value)}
+                className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+              <span className="hidden sm:inline text-gray-400 text-sm">.</span>
+              <input
+                placeholder="column"
+                value={f.column}
+                maxLength={MAX_LEN}
+                onChange={(e) => update(f.id, "column", e.target.value)}
+                className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+            </div>
             <button
               type="button"
               onClick={() => remove(f.id)}
               disabled={fields.length === 1}
-              className="text-gray-300 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="mt-2 sm:mt-0 text-gray-300 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <Trash2 size={16} />
             </button>
