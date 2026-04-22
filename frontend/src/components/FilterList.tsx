@@ -7,13 +7,20 @@ interface Props {
   onChange: (filters: FilterRow[]) => void;
 }
 
+const IDENTIFIER_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+const MAX_LEN = 128;
+
+function isValidIdentifier(val: string) {
+  return val === "" || (val.length <= MAX_LEN && IDENTIFIER_RE.test(val));
+}
+
 export function FilterList({ filters, onChange }: Props) {
   function update(id: string, key: keyof FilterRow, val: string) {
+    if ((key === "table" || key === "column") && !isValidIdentifier(val)) return;
     onChange(
       filters.map((f) => {
         if (f.id !== id) return f;
         const updated = { ...f, [key]: val };
-        // clear value when switching to a null operator
         if (key === "operator" && isNullOp(val as OperatorValue)) {
           updated.value = "";
         }
@@ -23,15 +30,10 @@ export function FilterList({ filters, onChange }: Props) {
   }
 
   function add() {
+    if (filters.length >= 50) return;
     onChange([
       ...filters,
-      {
-        id: crypto.randomUUID(),
-        table: "",
-        column: "",
-        operator: "eq",
-        value: "",
-      },
+      { id: crypto.randomUUID(), table: "", column: "", operator: "eq", value: "" },
     ]);
   }
 
@@ -48,7 +50,8 @@ export function FilterList({ filters, onChange }: Props) {
         <button
           type="button"
           onClick={add}
-          className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium cursor-pointer"
+          disabled={filters.length >= 50}
+          className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Plus size={15} />
           Add filter
@@ -65,6 +68,7 @@ export function FilterList({ filters, onChange }: Props) {
             <input
               placeholder="table"
               value={f.table}
+              maxLength={MAX_LEN}
               onChange={(e) => update(f.id, "table", e.target.value)}
               className="w-28 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
@@ -72,6 +76,7 @@ export function FilterList({ filters, onChange }: Props) {
             <input
               placeholder="column"
               value={f.column}
+              maxLength={MAX_LEN}
               onChange={(e) => update(f.id, "column", e.target.value)}
               className="w-28 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
@@ -89,11 +94,7 @@ export function FilterList({ filters, onChange }: Props) {
 
             {!isNullOp(f.operator as OperatorValue) && (
               <input
-                placeholder={
-                  isListOp(f.operator as OperatorValue)
-                    ? "val1, val2, ..."
-                    : "value"
-                }
+                placeholder={isListOp(f.operator as OperatorValue) ? "val1, val2, ..." : "value"}
                 value={f.value}
                 onChange={(e) => update(f.id, "value", e.target.value)}
                 className="flex-1 min-w-24 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"

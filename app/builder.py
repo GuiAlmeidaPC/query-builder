@@ -5,7 +5,7 @@ from typing import List
 from app.dialects.athena import AthenaDialect
 from app.dialects.base import BaseDialect
 from app.dialects.sqlite import SQLiteDialect
-from app.models import Dialect, Field, Filter, Operator, QueryRequest
+from app.models import Dialect, FieldModel, Filter, Operator, QueryRequest
 
 _OPERATOR_MAP = {
     Operator.eq: "=",
@@ -23,7 +23,7 @@ def _get_dialect(dialect: Dialect) -> BaseDialect:
     return AthenaDialect() if dialect == Dialect.athena else SQLiteDialect()
 
 
-def _ordered_unique_tables(fields: List[Field], filters: List[Filter]) -> List[str]:
+def _ordered_unique_tables(fields: List[FieldModel], filters: List[Filter]) -> List[str]:
     seen: set[str] = set()
     tables: list[str] = []
     for item in [*fields, *filters]:
@@ -33,7 +33,7 @@ def _ordered_unique_tables(fields: List[Field], filters: List[Filter]) -> List[s
     return tables
 
 
-def _build_select(fields: List[Field], d: BaseDialect) -> str:
+def _build_select(fields: List[FieldModel], d: BaseDialect) -> str:
     columns = [d.qualified(f.table, f.column) for f in fields]
     return "SELECT " + ", ".join(columns)
 

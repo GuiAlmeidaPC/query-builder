@@ -6,16 +6,22 @@ interface Props {
   onChange: (fields: FieldRow[]) => void;
 }
 
+const IDENTIFIER_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+const MAX_LEN = 128;
+
+function isValidIdentifier(val: string) {
+  return val === "" || (val.length <= MAX_LEN && IDENTIFIER_RE.test(val));
+}
+
 export function FieldList({ fields, onChange }: Props) {
   function update(id: string, key: keyof FieldRow, val: string) {
+    if ((key === "table" || key === "column") && !isValidIdentifier(val)) return;
     onChange(fields.map((f) => (f.id === id ? { ...f, [key]: val } : f)));
   }
 
   function add() {
-    onChange([
-      ...fields,
-      { id: crypto.randomUUID(), table: "", column: "" },
-    ]);
+    if (fields.length >= 50) return;
+    onChange([...fields, { id: crypto.randomUUID(), table: "", column: "" }]);
   }
 
   function remove(id: string) {
@@ -31,7 +37,8 @@ export function FieldList({ fields, onChange }: Props) {
         <button
           type="button"
           onClick={add}
-          className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium cursor-pointer"
+          disabled={fields.length >= 50}
+          className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Plus size={15} />
           Add field
@@ -39,9 +46,7 @@ export function FieldList({ fields, onChange }: Props) {
       </div>
 
       {fields.length === 0 && (
-        <p className="text-sm text-gray-400 italic">
-          No fields yet — add at least one.
-        </p>
+        <p className="text-sm text-gray-400 italic">No fields yet — add at least one.</p>
       )}
 
       <div className="flex flex-col gap-2">
@@ -50,6 +55,7 @@ export function FieldList({ fields, onChange }: Props) {
             <input
               placeholder="table"
               value={f.table}
+              maxLength={MAX_LEN}
               onChange={(e) => update(f.id, "table", e.target.value)}
               className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
@@ -57,6 +63,7 @@ export function FieldList({ fields, onChange }: Props) {
             <input
               placeholder="column"
               value={f.column}
+              maxLength={MAX_LEN}
               onChange={(e) => update(f.id, "column", e.target.value)}
               className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
@@ -71,6 +78,10 @@ export function FieldList({ fields, onChange }: Props) {
           </div>
         ))}
       </div>
+
+      <p className="text-xs text-gray-400 mt-2">
+        Names must start with a letter or underscore, contain only letters, digits, or underscores, and be at most 128 characters. Max 50 fields.
+      </p>
     </section>
   );
 }

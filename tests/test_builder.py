@@ -229,3 +229,82 @@ def test_invalid_operator_returns_422():
         "fields": [{"table": "t", "column": "c"}],
         "filters": [{"table": "t", "column": "c", "operator": "contains", "value": "x"}],
     })
+
+
+# ---------------------------------------------------------------------------
+# Fix #2 — identifier constraints & input bounds
+# ---------------------------------------------------------------------------
+
+def test_invalid_table_name_returns_422():
+    post_error({"dialect": "sqlite", "fields": [{"table": "invalid-name!", "column": "id"}]})
+
+
+def test_invalid_column_name_returns_422():
+    post_error({"dialect": "sqlite", "fields": [{"table": "orders", "column": "123bad"}]})
+
+
+def test_table_name_too_long_returns_422():
+    post_error({"dialect": "sqlite", "fields": [{"table": "a" * 129, "column": "id"}]})
+
+
+def test_empty_table_name_returns_422():
+    post_error({"dialect": "sqlite", "fields": [{"table": "", "column": "id"}]})
+
+
+def test_too_many_fields_returns_422():
+    post_error({
+        "dialect": "sqlite",
+        "fields": [{"table": "t", "column": "c"}] * 51,
+    })
+
+
+def test_too_many_filters_returns_422():
+    post_error({
+        "dialect": "sqlite",
+        "fields": [{"table": "t", "column": "c"}],
+        "filters": [{"table": "t", "column": "c", "operator": "eq", "value": "x"}] * 51,
+    })
+
+
+def test_in_operator_empty_list_returns_422():
+    post_error({
+        "dialect": "sqlite",
+        "fields": [{"table": "t", "column": "c"}],
+        "filters": [{"table": "t", "column": "c", "operator": "in", "value": []}],
+    })
+
+
+def test_in_operator_with_object_value_returns_422():
+    post_error({
+        "dialect": "sqlite",
+        "fields": [{"table": "t", "column": "c"}],
+        "filters": [{"table": "t", "column": "c", "operator": "in", "value": [{"nested": "obj"}]}],
+    })
+
+
+def test_valid_identifier_with_underscore():
+    result = post({
+        "dialect": "sqlite",
+        "fields": [{"table": "order_items", "column": "_internal_id"}],
+    })
+    assert '"order_items"."_internal_id"' in result["query"]
+
+
+# ---------------------------------------------------------------------------
+# Fix #7 — generic error response body
+# ---------------------------------------------------------------------------
+
+def test_validation_error_returns_generic_message():
+    resp = client.post("/query/build", json={"dialect": "sqlite", "fields": []})
+    assert resp.status_code == 422
+    body = resp.json()
+    assert body == {"detail": "Invalid request parameters"}
+
+
+def test_validation_error_hides_internals():
+    resp = client.post("/query/build", json={"dialect": "sqlite", "fields": [{"table": "bad!", "column": "c"}]})
+    assert resp.status_code == 422
+    body = resp.json()
+    # Must not leak field paths or pydantic type names
+    assert "loc" not in str(body)
+    assert "type" not in str(body)
