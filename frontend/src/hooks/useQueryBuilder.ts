@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { buildQuery } from "../api";
+import { generateId } from "../utils/generateId";
 import { isListOp, isNullOp } from "../types";
 import type { Dialect, FieldRow, FilterRow, OperatorValue } from "../types";
 
@@ -15,7 +16,7 @@ function parseValue(raw: string, operator: OperatorValue) {
 export function useQueryBuilder() {
   const [dialect, setDialect] = useState<Dialect>("athena");
   const [fields, setFields] = useState<FieldRow[]>([
-    { id: crypto.randomUUID(), table: "", column: "" },
+    { id: generateId(), table: "", column: "" },
   ]);
   const [filters, setFilters] = useState<FilterRow[]>([]);
   const [query, setQuery] = useState<string | null>(null);

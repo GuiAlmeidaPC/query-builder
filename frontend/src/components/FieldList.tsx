@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import { generateId } from "../utils/generateId";
 import type { FieldRow } from "../types";
 
 interface Props {
@@ -21,7 +22,7 @@ export function FieldList({ fields, onChange }: Props) {
 
   function add() {
     if (fields.length >= 50) return;
-    onChange([...fields, { id: crypto.randomUUID(), table: "", column: "" }]);
+    onChange([...fields, { id: generateId(), table: "", column: "" }]);
   }
 
   function remove(id: string) {

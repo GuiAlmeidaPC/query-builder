@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import { generateId } from "../utils/generateId";
 import { OPERATORS, isListOp, isNullOp } from "../types";
 import type { FilterRow, OperatorValue } from "../types";
 
@@ -33,7 +34,7 @@ export function FilterList({ filters, onChange }: Props) {
     if (filters.length >= 50) return;
     onChange([
       ...filters,
-      { id: crypto.randomUUID(), table: "", column: "", operator: "eq", value: "" },
+      { id: generateId(), table: "", column: "", operator: "eq", value: "" },
     ]);
   }
 
