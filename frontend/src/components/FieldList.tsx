@@ -59,7 +59,7 @@ export function FieldList({ fields, onChange }: Props) {
                 value={f.table}
                 maxLength={MAX_LEN}
                 onChange={(e) => update(f.id, "table", e.target.value)}
-                className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
               />
               <span className="hidden sm:inline text-gray-400 text-sm">.</span>
               <input
@@ -67,7 +67,7 @@ export function FieldList({ fields, onChange }: Props) {
                 value={f.column}
                 maxLength={MAX_LEN}
                 onChange={(e) => update(f.id, "column", e.target.value)}
-                className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
               />
             </div>
             <button

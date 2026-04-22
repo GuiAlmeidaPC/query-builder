@@ -65,47 +65,58 @@ export function FilterList({ filters, onChange }: Props) {
 
       <div className="flex flex-col gap-2">
         {filters.map((f) => (
-          <div key={f.id} className="flex gap-2 items-center flex-wrap">
-            <input
-              placeholder="table"
-              value={f.table}
-              maxLength={MAX_LEN}
-              onChange={(e) => update(f.id, "table", e.target.value)}
-              className="w-28 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-            />
-            <span className="text-gray-400 text-sm">.</span>
-            <input
-              placeholder="column"
-              value={f.column}
-              maxLength={MAX_LEN}
-              onChange={(e) => update(f.id, "column", e.target.value)}
-              className="w-28 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-            />
-            <select
-              value={f.operator}
-              onChange={(e) => update(f.id, "operator", e.target.value)}
-              className="rounded-lg border border-gray-200 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white cursor-pointer"
-            >
-              {OPERATORS.map((op) => (
-                <option key={op.value} value={op.value}>
-                  {op.label}
-                </option>
-              ))}
-            </select>
+          <div key={f.id} className="flex gap-2 items-start">
+            {/* Card: stacks into two rows on mobile, flat row on desktop */}
+            <div className="flex-1 min-w-0 flex flex-col gap-2 bg-gray-50 border border-gray-200 rounded-lg p-2 sm:flex-row sm:items-center sm:bg-transparent sm:border-0 sm:rounded-none sm:p-0">
 
-            {!isNullOp(f.operator as OperatorValue) && (
-              <input
-                placeholder={isListOp(f.operator as OperatorValue) ? "val1, val2, ..." : "value"}
-                value={f.value}
-                onChange={(e) => update(f.id, "value", e.target.value)}
-                className="flex-1 min-w-24 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-              />
-            )}
+              {/* Row 1 — table . column */}
+              <div className="flex items-center gap-2 sm:flex-1 sm:min-w-0">
+                <input
+                  placeholder="table"
+                  value={f.table}
+                  maxLength={MAX_LEN}
+                  onChange={(e) => update(f.id, "table", e.target.value)}
+                  className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                />
+                <span className="text-gray-400 text-sm">.</span>
+                <input
+                  placeholder="column"
+                  value={f.column}
+                  maxLength={MAX_LEN}
+                  onChange={(e) => update(f.id, "column", e.target.value)}
+                  className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                />
+              </div>
+
+              {/* Row 2 — operator + value */}
+              <div className="flex items-center gap-2 sm:flex-1 sm:min-w-0">
+                <select
+                  value={f.operator}
+                  onChange={(e) => update(f.id, "operator", e.target.value)}
+                  className="rounded-lg border border-gray-200 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white cursor-pointer"
+                >
+                  {OPERATORS.map((op) => (
+                    <option key={op.value} value={op.value}>
+                      {op.label}
+                    </option>
+                  ))}
+                </select>
+
+                {!isNullOp(f.operator as OperatorValue) && (
+                  <input
+                    placeholder={isListOp(f.operator as OperatorValue) ? "val1, val2, ..." : "value"}
+                    value={f.value}
+                    onChange={(e) => update(f.id, "value", e.target.value)}
+                    className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                  />
+                )}
+              </div>
+            </div>
 
             <button
               type="button"
               onClick={() => remove(f.id)}
-              className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer"
+              className="mt-2 sm:mt-0 text-gray-300 hover:text-red-400 transition-colors cursor-pointer"
             >
               <Trash2 size={16} />
             </button>
