@@ -4,10 +4,14 @@ import tailwindcss from "@tailwindcss/vite";
 import { compression } from "vite-plugin-compression2";
 
 export default defineConfig({
+  base: "/querybuilder/",
   plugins: [react(), tailwindcss(), compression({ algorithms: ["gzip"] })],
   server: {
     proxy: {
-      "/query": "http://localhost:8000",
+      "/querybuilder/query": {
+        target: "http://localhost:8000",
+        rewrite: (path) => path.replace(/^\/querybuilder/, ""),
+      },
     },
   },
   build: {

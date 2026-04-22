@@ -1,7 +1,7 @@
 import type { QueryRequest, QueryResponse } from "./types";
 
 export async function buildQuery(req: QueryRequest): Promise<QueryResponse> {
-  const res = await fetch("/query/build", {
+  const res = await fetch(`${import.meta.env.BASE_URL}query/build`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
