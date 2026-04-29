@@ -60,6 +60,43 @@ docker compose up --build
 
 App at `http://localhost:8080/querybuilder/`. Nginx proxies `/querybuilder/query/*` to the `backend` container.
 
+## Deploy without Docker
+
+For a VPS deployment where the backend and frontend are managed manually, use:
+
+```sh
+./scripts/deploy.sh
+```
+
+The script pulls `origin/master`, runs `uv sync`, installs frontend dependencies, and builds `frontend/dist`. If you want it to restart manually-managed processes, provide shell commands:
+
+```sh
+BACKEND_RESTART_CMD="pkill -f 'uvicorn app.main:app' || true; cd /srv/query-builder/backend && nohup uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &" FRONTEND_RESTART_CMD='sudo nginx -s reload' ./scripts/deploy.sh
+```
+
+Optional flags:
+
+```sh
+RUN_TESTS=1 ./scripts/deploy.sh
+PULL_LATEST=0 ./scripts/deploy.sh
+GIT_BRANCH=main ./scripts/deploy.sh
+```
+
+To trigger the VPS deploy from your local machine over SSH, run:
+
+```sh
+./scripts/deploy-vps.sh
+```
+
+It prompts for the VPS SSH user, IP/hostname, remote project path, branch, and optional restart commands, then connects with SSH and runs `./scripts/deploy.sh` on the VPS. The default remote path is `/srv/query-builder`.
+The default backend restart command stops the current `uvicorn app.main:app` process and starts it again with `nohup`; the default frontend restart command reloads nginx.
+
+You can skip prompts with environment variables:
+
+```sh
+VPS_USER=ubuntu VPS_HOST=203.0.113.10 ./scripts/deploy-vps.sh
+```
+
 ## Test
 
 ```sh
