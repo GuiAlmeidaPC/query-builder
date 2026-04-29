@@ -2,8 +2,9 @@ import { useState } from "react";
 import { buildQuery } from "../../../services/apiClient";
 import type { Dialect, OperatorValue } from "../../../services/types";
 import { generateId } from "../../../shared/utils/generateId";
+import { getFilterableColumns } from "../metadata/catalog";
 import { isListOp, isNullOp } from "../types";
-import type { FieldRow, FilterRow } from "../types";
+import type { BuilderMode, FieldRow, FilterRow } from "../types";
 
 function parseValue(raw: string, operator: OperatorValue) {
   if (isNullOp(operator)) return undefined;
@@ -15,6 +16,7 @@ function parseValue(raw: string, operator: OperatorValue) {
 }
 
 export function useQueryBuilder() {
+  const [mode, setMode] = useState<BuilderMode>("catalog");
   const [dialect, setDialect] = useState<Dialect>("athena");
   const [fields, setFields] = useState<FieldRow[]>([
     { id: generateId(), table: "", column: "" },
@@ -26,6 +28,24 @@ export function useQueryBuilder() {
 
   function validate(): string[] {
     const errs: string[] = [];
+    if (mode === "catalog") {
+      if (filters.length === 0) {
+        errs.push("Add at least one filter.");
+      }
+      for (const f of filters) {
+        if (!f.table.trim()) errs.push("A filter is missing a table selection.");
+        if (!f.column.trim()) errs.push("A filter is missing a column selection.");
+        if (f.table.trim() && f.column.trim()) {
+          const isKnownFilter = getFilterableColumns(f.table).some((column) => column.name === f.column);
+          if (!isKnownFilter) errs.push(`"${f.table}.${f.column}" is not available in the catalog.`);
+        }
+        if (!isNullOp(f.operator as OperatorValue) && !f.value.trim()) {
+          errs.push(`Filter on "${f.table}.${f.column}" is missing a value.`);
+        }
+      }
+      return [...new Set(errs)];
+    }
+
     if (fields.every((f) => !f.table.trim() || !f.column.trim())) {
       errs.push("Every field must have a table and column.");
     }
@@ -51,10 +71,14 @@ export function useQueryBuilder() {
     }
     setErrors([]);
     setLoading(true);
+    const requestFields = mode === "catalog"
+      ? [{ table: filters[0].table, column: "customer_id" }]
+      : fields.map(({ table, column }) => ({ table, column }));
+
     try {
       const res = await buildQuery({
         dialect,
-        fields: fields.map(({ table, column }) => ({ table, column })),
+        fields: requestFields,
         filters: filters.map((f) => ({
           table: f.table,
           column: f.column,
@@ -78,6 +102,7 @@ export function useQueryBuilder() {
   }
 
   return {
+    mode, setMode,
     dialect, setDialect,
     fields, setFields,
     filters, setFilters,

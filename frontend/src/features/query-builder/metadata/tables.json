@@ -1,0 +1,73 @@
+[
+  {
+    "name": "customers",
+    "label": "Customers",
+    "description": "Customer profile, geography, and lifecycle data.",
+    "category": "Identity",
+    "columns": [
+      { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
+      { "name": "country", "label": "Country", "type": "string", "filterable": true },
+      { "name": "city", "label": "City", "type": "string", "filterable": true },
+      { "name": "signup_channel", "label": "Signup channel", "type": "string", "filterable": true },
+      { "name": "created_at", "label": "Created at", "type": "datetime", "filterable": true },
+      { "name": "is_active", "label": "Is active", "type": "boolean", "filterable": true }
+    ]
+  },
+  {
+    "name": "orders",
+    "label": "Orders",
+    "description": "Commerce orders and fulfillment state.",
+    "category": "Commerce",
+    "columns": [
+      { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
+      { "name": "order_id", "label": "Order ID", "type": "string", "filterable": true },
+      { "name": "amount", "label": "Amount", "type": "number", "filterable": true },
+      { "name": "status", "label": "Status", "type": "string", "filterable": true },
+      { "name": "ordered_at", "label": "Ordered at", "type": "datetime", "filterable": true },
+      { "name": "cancelled_at", "label": "Cancelled at", "type": "datetime", "filterable": true }
+    ]
+  },
+  {
+    "name": "payments",
+    "label": "Payments",
+    "description": "Payment attempts, methods, and risk signals.",
+    "category": "Billing",
+    "columns": [
+      { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
+      { "name": "payment_method", "label": "Payment method", "type": "string", "filterable": true },
+      { "name": "payment_status", "label": "Payment status", "type": "string", "filterable": true },
+      { "name": "captured_amount", "label": "Captured amount", "type": "number", "filterable": true },
+      { "name": "risk_score", "label": "Risk score", "type": "number", "filterable": true },
+      { "name": "paid_at", "label": "Paid at", "type": "datetime", "filterable": true }
+    ]
+  },
+  {
+    "name": "subscriptions",
+    "label": "Subscriptions",
+    "description": "Plan, renewal, and churn status for recurring customers.",
+    "category": "Lifecycle",
+    "columns": [
+      { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
+      { "name": "plan_tier", "label": "Plan tier", "type": "string", "filterable": true },
+      { "name": "billing_cycle", "label": "Billing cycle", "type": "string", "filterable": true },
+      { "name": "monthly_recurring_revenue", "label": "Monthly recurring revenue", "type": "number", "filterable": true },
+      { "name": "renewal_date", "label": "Renewal date", "type": "date", "filterable": true },
+      { "name": "churned_at", "label": "Churned at", "type": "datetime", "filterable": true }
+    ]
+  },
+  {
+    "name": "support_tickets",
+    "label": "Support tickets",
+    "description": "Support volume, sentiment, and escalation history.",
+    "category": "Support",
+    "columns": [
+      { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
+      { "name": "ticket_id", "label": "Ticket ID", "type": "string", "filterable": true },
+      { "name": "topic", "label": "Topic", "type": "string", "filterable": true },
+      { "name": "priority", "label": "Priority", "type": "string", "filterable": true },
+      { "name": "sentiment", "label": "Sentiment", "type": "string", "filterable": true },
+      { "name": "first_response_minutes", "label": "First response minutes", "type": "number", "filterable": true },
+      { "name": "resolved_at", "label": "Resolved at", "type": "datetime", "filterable": true }
+    ]
+  }
+]

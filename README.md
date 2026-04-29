@@ -3,7 +3,7 @@
 A modular monorepo containing:
 
 - **`backend/`** — FastAPI service that builds SQL `SELECT` queries from structured field/filter input. Supports **Amazon Athena** and **SQLite** dialects. When fields from more than one table are requested, tables are automatically joined on the shared primary key `customer_id`.
-- **`frontend/`** — React + Vite UI for building queries interactively.
+- **`frontend/`** — React + Vite UI for building queries interactively, including a metadata-backed catalog mode for customer segment filters.
 
 ## Layout
 
@@ -66,6 +66,17 @@ App at `http://localhost:8080/querybuilder/`. Nginx proxies `/querybuilder/query
 cd backend && uv run pytest
 cd frontend && npm run lint && npm run build
 ```
+
+---
+
+## Frontend modes
+
+The UI has two modes:
+
+- **Catalog** — users choose filter tables and columns from bundled JSON metadata. The generated query always selects only `customer_id` from the first filtered table, and additional filtered tables are joined on `customer_id`.
+- **Manual** — users can still enter arbitrary selected fields, tables, columns, and filters against the existing API contract.
+
+Catalog metadata lives in `frontend/src/features/query-builder/metadata/tables.json`. Each table in that file shares the `customer_id` key.
 
 ---
 

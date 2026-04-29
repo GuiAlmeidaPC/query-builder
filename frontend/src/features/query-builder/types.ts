@@ -1,5 +1,7 @@
 import type { OperatorValue } from "../../services/types";
 
+export type BuilderMode = "catalog" | "manual";
+
 const NULL_OPS: OperatorValue[] = ["is_null", "is_not_null"];
 const LIST_OPS: OperatorValue[] = ["in", "not_in"];
 
