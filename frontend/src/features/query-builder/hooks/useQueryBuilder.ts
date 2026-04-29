@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { buildQuery } from "../api";
-import { generateId } from "../utils/generateId";
+import { buildQuery } from "../../../services/apiClient";
+import type { Dialect, OperatorValue } from "../../../services/types";
+import { generateId } from "../../../shared/utils/generateId";
 import { isListOp, isNullOp } from "../types";
-import type { Dialect, FieldRow, FilterRow, OperatorValue } from "../types";
+import type { FieldRow, FilterRow } from "../types";
 
 function parseValue(raw: string, operator: OperatorValue) {
   if (isNullOp(operator)) return undefined;

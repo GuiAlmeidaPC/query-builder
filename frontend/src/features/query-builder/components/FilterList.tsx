@@ -1,7 +1,9 @@
 import { Plus, Trash2 } from "lucide-react";
-import { generateId } from "../utils/generateId";
-import { OPERATORS, isListOp, isNullOp } from "../types";
-import type { FilterRow, OperatorValue } from "../types";
+import { generateId } from "../../../shared/utils/generateId";
+import { OPERATORS } from "../../../services/types";
+import type { OperatorValue } from "../../../services/types";
+import { isListOp, isNullOp } from "../types";
+import type { FilterRow } from "../types";
 
 interface Props {
   filters: FilterRow[];

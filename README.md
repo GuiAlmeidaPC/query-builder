@@ -1,31 +1,70 @@
-# Query Builder API
+# Query Builder
 
-A REST API that builds SQL `SELECT` queries from structured field and filter inputs. Supports **Amazon Athena** and **SQLite** dialects. When fields from more than one table are requested, tables are automatically joined on their shared primary key `customer_id`.
+A modular monorepo containing:
 
-## Requirements
+- **`backend/`** — FastAPI service that builds SQL `SELECT` queries from structured field/filter input. Supports **Amazon Athena** and **SQLite** dialects. When fields from more than one table are requested, tables are automatically joined on the shared primary key `customer_id`.
+- **`frontend/`** — React + Vite UI for building queries interactively.
 
-- Python 3.13+
-- [uv](https://docs.astral.sh/uv/) (package manager)
+## Layout
 
-## Setup
-
-```bash
-uv sync
+```
+query-builder/
+├── backend/                FastAPI service (see backend/README.md)
+│   └── app/
+│       ├── api/            APIRouter modules (query.py)
+│       ├── core/           config + middleware (CORS, rate limit)
+│       ├── schemas/        Pydantic DTOs (query.py)
+│       ├── services/       Business logic (query_builder.py)
+│       └── dialects/       Athena, SQLite
+├── frontend/               React app (see frontend code)
+│   └── src/
+│       ├── features/
+│       │   └── query-builder/    QueryBuilder component, hook, formatSQL
+│       ├── services/             API client + contract types
+│       ├── shared/               Generic utilities
+│       ├── components/           (placeholder — global UI)
+│       └── hooks/                (placeholder — global hooks)
+├── docker-compose.yml      Orchestrates both services
+└── README.md
 ```
 
-## Running
+## Run locally (without Docker)
 
-```bash
+**Backend** (Python 3.13 + [uv](https://docs.astral.sh/uv/)):
+
+```sh
+cd backend
+uv sync
+cp .env.example .env
 uv run uvicorn app.main:app --reload
 ```
 
-The API will be available at `http://localhost:8000`.  
-Interactive docs (Swagger UI): `http://localhost:8000/docs`
+API at `http://localhost:8000`. Docs at `http://localhost:8000/docs` when `ENVIRONMENT=development`.
 
-## Testing
+**Frontend** (Node 20+):
 
-```bash
-uv run pytest tests/ -v
+```sh
+cd frontend
+npm install
+npm run dev
+```
+
+App at `http://localhost:5173/querybuilder/`. The Vite dev server proxies `/querybuilder/query/*` to `http://localhost:8000`.
+
+## Run with Docker
+
+```sh
+cp backend/.env.example backend/.env
+docker compose up --build
+```
+
+App at `http://localhost:8080/querybuilder/`. Nginx proxies `/querybuilder/query/*` to the `backend` container.
+
+## Test
+
+```sh
+cd backend && uv run pytest
+cd frontend && npm run lint && npm run build
 ```
 
 ---
@@ -80,9 +119,7 @@ Builds a SQL query from the provided fields and filters.
 #### Response body
 
 ```json
-{
-  "query": "<generated SQL string>"
-}
+{ "query": "<generated SQL string>" }
 ```
 
 ---
@@ -91,7 +128,7 @@ Builds a SQL query from the provided fields and filters.
 
 ### Single table, no filters
 
-```bash
+```sh
 curl -X POST http://localhost:8000/query/build \
   -H "Content-Type: application/json" \
   -d '{
@@ -104,16 +141,12 @@ curl -X POST http://localhost:8000/query/build \
 ```
 
 ```json
-{
-  "query": "SELECT \"orders\".\"order_id\", \"orders\".\"amount\" FROM \"orders\""
-}
+{ "query": "SELECT \"orders\".\"order_id\", \"orders\".\"amount\" FROM \"orders\"" }
 ```
-
----
 
 ### Single table with filters
 
-```bash
+```sh
 curl -X POST http://localhost:8000/query/build \
   -H "Content-Type: application/json" \
   -d '{
@@ -129,17 +162,9 @@ curl -X POST http://localhost:8000/query/build \
   }'
 ```
 
-```json
-{
-  "query": "SELECT \"orders\".\"order_id\", \"orders\".\"amount\" FROM \"orders\" WHERE \"orders\".\"amount\" >= 500 AND \"orders\".\"status\" IN ('paid', 'pending')"
-}
-```
-
----
-
 ### Multi-table query (auto-JOIN on `customer_id`)
 
-```bash
+```sh
 curl -X POST http://localhost:8000/query/build \
   -H "Content-Type: application/json" \
   -d '{
@@ -156,30 +181,9 @@ curl -X POST http://localhost:8000/query/build \
   }'
 ```
 
-```json
-{
-  "query": "SELECT \"orders\".\"amount\", \"customers\".\"email\", \"payments\".\"method\" FROM \"orders\" JOIN \"customers\" ON \"orders\".\"customer_id\" = \"customers\".\"customer_id\" JOIN \"payments\" ON \"orders\".\"customer_id\" = \"payments\".\"customer_id\" WHERE \"customers\".\"country\" = 'BR' AND \"orders\".\"cancelled_at\" IS NULL"
-}
-```
-
 ---
 
-## Architecture
-
-```
-app/
-  main.py          FastAPI application and route definition
-  models.py        Pydantic request/response models and validation
-  builder.py       Query assembly: SELECT, FROM, JOIN, WHERE
-  dialects/
-    base.py        Abstract dialect base class (quoting, value formatting)
-    athena.py      Amazon Athena dialect (Presto/Trino compatible)
-    sqlite.py      SQLite dialect
-tests/
-  test_builder.py  Integration tests via TestClient (21 cases)
-```
-
-### JOIN strategy
+## JOIN strategy
 
 The first table encountered across `fields` and `filters` (in order) becomes the `FROM` table. Every additional table is joined to it with an explicit `INNER JOIN` on `customer_id`:
 
@@ -188,9 +192,9 @@ FROM "primary_table"
 JOIN "other_table" ON "primary_table"."customer_id" = "other_table"."customer_id"
 ```
 
-### Adding a new dialect
+## Adding a new dialect
 
-1. Create `app/dialects/my_dialect.py` extending `BaseDialect`
+1. Create `backend/app/dialects/my_dialect.py` extending `BaseDialect`
 2. Override `quote()` and any formatting methods that differ
-3. Add the new value to `Dialect` enum in `models.py`
-4. Map it in `_get_dialect()` in `builder.py`
+3. Add the new value to the `Dialect` enum in `backend/app/schemas/query.py`
+4. Map it in `_get_dialect()` in `backend/app/services/query_builder.py`

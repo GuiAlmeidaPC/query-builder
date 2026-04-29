@@ -5,7 +5,7 @@ from typing import List
 from app.dialects.athena import AthenaDialect
 from app.dialects.base import BaseDialect
 from app.dialects.sqlite import SQLiteDialect
-from app.models import Dialect, FieldModel, Filter, Operator, QueryRequest
+from app.schemas.query import Dialect, FieldModel, Filter, Operator, QueryRequest
 
 _OPERATOR_MAP = {
     Operator.eq: "=",

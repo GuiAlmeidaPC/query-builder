@@ -1,4 +1,4 @@
-import type { Dialect } from "../types";
+import type { Dialect } from "../../../services/types";
 
 interface Props {
   value: Dialect;

@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
-import { generateId } from "../utils/generateId";
+import { generateId } from "../../../shared/utils/generateId";
 import type { FieldRow } from "../types";
 
 interface Props {

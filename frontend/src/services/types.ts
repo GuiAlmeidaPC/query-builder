@@ -17,30 +17,6 @@ export const OPERATORS = [
 
 export type OperatorValue = (typeof OPERATORS)[number]["value"];
 
-const NULL_OPS: OperatorValue[] = ["is_null", "is_not_null"];
-const LIST_OPS: OperatorValue[] = ["in", "not_in"];
-
-export function isNullOp(op: OperatorValue) {
-  return NULL_OPS.includes(op);
-}
-export function isListOp(op: OperatorValue) {
-  return LIST_OPS.includes(op);
-}
-
-export interface FieldRow {
-  id: string;
-  table: string;
-  column: string;
-}
-
-export interface FilterRow {
-  id: string;
-  table: string;
-  column: string;
-  operator: OperatorValue;
-  value: string; // raw input; parsed before sending
-}
-
 export interface QueryRequest {
   dialect: Dialect;
   fields: { table: string; column: string }[];
