@@ -12,6 +12,10 @@ RUN_TESTS="${RUN_TESTS:-0}"
 BACKEND_RESTART_CMD="${BACKEND_RESTART_CMD:-}"
 FRONTEND_RESTART_CMD="${FRONTEND_RESTART_CMD:-}"
 
+# Ensure tools installed in ~/.local/bin (e.g. uv) are available even in
+# non-login SSH sessions.
+export PATH="$HOME/.local/bin:$PATH"
+
 log() {
   printf '\n==> %s\n' "$1"
 }
