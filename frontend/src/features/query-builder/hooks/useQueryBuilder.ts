@@ -6,6 +6,7 @@ import { useLocalStorage } from "../../../shared/hooks/useLocalStorage";
 import { getFilterableColumns } from "../metadata/catalog";
 import { isListOp, isNullOp } from "../types";
 import type { BuilderMode, ClusterKey, FieldRow, FilterRow } from "../types";
+import { CLUSTERS } from "../types";
 
 function parseValue(raw: string, operator: OperatorValue) {
   if (isNullOp(operator)) return undefined;
@@ -106,7 +107,9 @@ export function useQueryBuilder() {
           value: parseValue(f.value, f.operator as OperatorValue),
         })),
       });
-      setQuery(res.query);
+      const clusterLabel = CLUSTERS.find((c) => c.id === selectedCluster)?.label ?? selectedCluster;
+      const prefix = mode === "catalog" ? `-- Query for ${clusterLabel}\n` : "";
+      setQuery(prefix + res.query);
     } catch (err: unknown) {
       if (err && typeof err === "object" && "detail" in err) {
         const detail = (err as { detail: { msg: string }[] }).detail;

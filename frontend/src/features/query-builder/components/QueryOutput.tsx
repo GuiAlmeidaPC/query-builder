@@ -6,7 +6,7 @@ interface Props {
   query: string;
 }
 
-type TokenType = "keyword" | "string" | "number" | "identifier" | "text";
+type TokenType = "keyword" | "string" | "number" | "identifier" | "comment" | "text";
 
 interface Token {
   type: TokenType;
@@ -23,6 +23,15 @@ function tokenize(query: string): Token[] {
   let i = 0;
 
   while (i < query.length) {
+    // Single-line comment
+    if (query[i] === "-" && query[i + 1] === "-") {
+      let j = i;
+      while (j < query.length && query[j] !== "\n") j++;
+      tokens.push({ type: "comment", value: query.slice(i, j) });
+      i = j;
+      continue;
+    }
+
     // Single-quoted string literal (handles '' escapes)
     if (query[i] === "'") {
       let j = i + 1;
@@ -82,6 +91,7 @@ const COLOR: Record<TokenType, string> = {
   string:     "text-emerald-600",
   number:     "text-amber-600",
   identifier: "text-sky-600",
+  comment:    "text-gray-400 italic",
   text:       "",
 };
 
