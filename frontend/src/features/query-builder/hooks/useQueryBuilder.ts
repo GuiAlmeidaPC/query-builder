@@ -4,7 +4,7 @@ import type { Dialect, OperatorValue } from "../../../services/types";
 import { generateId } from "../../../shared/utils/generateId";
 import { getFilterableColumns } from "../metadata/catalog";
 import { isListOp, isNullOp } from "../types";
-import type { BuilderMode, FieldRow, FilterRow } from "../types";
+import type { BuilderMode, ClusterKey, FieldRow, FilterRow } from "../types";
 
 function parseValue(raw: string, operator: OperatorValue) {
   if (isNullOp(operator)) return undefined;
@@ -22,17 +22,32 @@ export function useQueryBuilder() {
     { id: generateId(), table: "", column: "" },
   ]);
   const [filters, setFilters] = useState<FilterRow[]>([]);
+  const [selectedCluster, setSelectedCluster] = useState<ClusterKey>("cluster_01");
+  const [clusterFilters, setClusterFilters] = useState<Record<ClusterKey, FilterRow[]>>({
+    cluster_01: [],
+    cluster_02: [],
+    cluster_03: [],
+    cluster_04: [],
+    cluster_05: [],
+    cluster_06: [],
+  });
   const [query, setQuery] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  function setActiveClusterFilters(rows: FilterRow[]) {
+    setClusterFilters((prev) => ({ ...prev, [selectedCluster]: rows }));
+  }
+
+  const activeFilters = mode === "catalog" ? clusterFilters[selectedCluster] : filters;
+
   function validate(): string[] {
     const errs: string[] = [];
     if (mode === "catalog") {
-      if (filters.length === 0) {
+      if (activeFilters.length === 0) {
         errs.push("Add at least one filter.");
       }
-      for (const f of filters) {
+      for (const f of activeFilters) {
         if (!f.table.trim()) errs.push("A filter is missing a table selection.");
         if (!f.column.trim()) errs.push("A filter is missing a column selection.");
         if (f.table.trim() && f.column.trim()) {
@@ -72,14 +87,14 @@ export function useQueryBuilder() {
     setErrors([]);
     setLoading(true);
     const requestFields = mode === "catalog"
-      ? [{ table: filters[0].table, column: "customer_id" }]
+      ? [{ table: activeFilters[0].table, column: "customer_id" }]
       : fields.map(({ table, column }) => ({ table, column }));
 
     try {
       const res = await buildQuery({
         dialect,
         fields: requestFields,
-        filters: filters.map((f) => ({
+        filters: activeFilters.map((f) => ({
           table: f.table,
           column: f.column,
           operator: f.operator,
@@ -106,6 +121,9 @@ export function useQueryBuilder() {
     dialect, setDialect,
     fields, setFields,
     filters, setFilters,
+    selectedCluster, setSelectedCluster,
+    clusterFilters,
+    activeFilters, setActiveClusterFilters,
     query,
     errors,
     loading,

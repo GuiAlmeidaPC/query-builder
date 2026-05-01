@@ -1,3 +1,4 @@
+import { ClusterSelector } from "./components/ClusterSelector";
 import { DialectSelector } from "./components/DialectSelector";
 import { FieldList } from "./components/FieldList";
 import { FilterList } from "./components/FilterList";
@@ -12,6 +13,8 @@ export function QueryBuilder() {
     dialect, setDialect,
     fields, setFields,
     filters, setFilters,
+    selectedCluster, setSelectedCluster,
+    activeFilters, setActiveClusterFilters,
     query,
     errors,
     loading,
@@ -33,11 +36,18 @@ export function QueryBuilder() {
           </>
         )}
 
+        {mode === "catalog" && (
+          <>
+            <hr className="border-gray-100" />
+            <ClusterSelector value={selectedCluster} onChange={setSelectedCluster} />
+          </>
+        )}
+
         <hr className="border-gray-100" />
 
         <FilterList
-          filters={filters}
-          onChange={setFilters}
+          filters={mode === "catalog" ? activeFilters : filters}
+          onChange={mode === "catalog" ? setActiveClusterFilters : setFilters}
           mode={mode}
           tables={TABLE_CATALOG}
         />
