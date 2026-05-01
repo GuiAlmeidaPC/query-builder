@@ -92,17 +92,28 @@ function splitClauses(str: string): string[] {
 }
 
 export function formatSQL(query: string): string {
-  const fromIdx = query.search(/\bFROM\b/);
+  // Preserve any leading -- comment line before formatting the SQL
+  let prefix = "";
+  let sql = query;
+  if (query.startsWith("--")) {
+    const newlineIdx = query.indexOf("\n");
+    if (newlineIdx !== -1) {
+      prefix = query.slice(0, newlineIdx + 1);
+      sql = query.slice(newlineIdx + 1);
+    }
+  }
+
+  const fromIdx = sql.search(/\bFROM\b/);
   if (fromIdx === -1) return query;
 
   // ── SELECT ────────────────────────────────────────────────────────────────
-  const rawFields = query.slice("SELECT ".length, fromIdx).trim();
+  const rawFields = sql.slice("SELECT ".length, fromIdx).trim();
   const fields = splitTopLevelCommas(rawFields);
   const selectBlock =
     "SELECT\n" + fields.map((f) => `${INDENT}${f}`).join(",\n");
 
   // ── FROM / JOIN / WHERE ───────────────────────────────────────────────────
-  const clauses = splitClauses(query.slice(fromIdx)).map((seg) => {
+  const clauses = splitClauses(sql.slice(fromIdx)).map((seg) => {
     if (seg.startsWith("JOIN")) {
       // JOIN "table" ON "a"."k" = "b"."k"
       return seg.replace(/\bON\b/, `\n${INDENT}ON`);
@@ -118,5 +129,5 @@ export function formatSQL(query: string): string {
     return seg;
   });
 
-  return [selectBlock, ...clauses].join("\n");
+  return prefix + [selectBlock, ...clauses].join("\n");
 }
