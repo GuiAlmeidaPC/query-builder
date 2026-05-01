@@ -46,6 +46,12 @@ export function useQueryBuilder() {
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  function switchCluster(cluster: ClusterKey) {
+    setSelectedCluster(cluster);
+    setQuery(null);
+    setErrors([]);
+  }
+
   const activeBlocks: FilterBlock[] =
     mode === "catalog"
       ? (clusterBlocks[selectedCluster] ?? [emptyBlock()])
@@ -157,7 +163,7 @@ export function useQueryBuilder() {
     mode, setMode,
     dialect, setDialect,
     fields, setFields,
-    selectedCluster, setSelectedCluster,
+    selectedCluster, setSelectedCluster: switchCluster,
     activeBlocks, setActiveBlocks,
     query,
     errors,
