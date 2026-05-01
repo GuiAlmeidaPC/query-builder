@@ -2,6 +2,7 @@ import { useState } from "react";
 import { buildQuery } from "../../../services/apiClient";
 import type { Dialect, OperatorValue } from "../../../services/types";
 import { generateId } from "../../../shared/utils/generateId";
+import { useLocalStorage } from "../../../shared/hooks/useLocalStorage";
 import { getFilterableColumns } from "../metadata/catalog";
 import { isListOp, isNullOp } from "../types";
 import type { BuilderMode, ClusterKey, FieldRow, FilterRow } from "../types";
@@ -22,24 +23,28 @@ export function useQueryBuilder() {
     { id: generateId(), table: "", column: "" },
   ]);
   const [filters, setFilters] = useState<FilterRow[]>([]);
-  const [selectedCluster, setSelectedCluster] = useState<ClusterKey>("cluster_01");
-  const [clusterFilters, setClusterFilters] = useState<Record<ClusterKey, FilterRow[]>>({
+  const defaultClusterFilters: Record<ClusterKey, FilterRow[]> = {
     cluster_01: [],
     cluster_02: [],
     cluster_03: [],
     cluster_04: [],
     cluster_05: [],
     cluster_06: [],
-  });
+  };
+  const [selectedCluster, setSelectedCluster] = useLocalStorage<ClusterKey>("qb:selectedCluster", "cluster_01");
+  const [clusterFilters, setClusterFilters] = useLocalStorage<Record<ClusterKey, FilterRow[]>>(
+    "qb:clusterFilters",
+    defaultClusterFilters,
+  );
   const [query, setQuery] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   function setActiveClusterFilters(rows: FilterRow[]) {
-    setClusterFilters((prev) => ({ ...prev, [selectedCluster]: rows }));
+    setClusterFilters({ ...defaultClusterFilters, ...clusterFilters, [selectedCluster]: rows });
   }
 
-  const activeFilters = mode === "catalog" ? clusterFilters[selectedCluster] : filters;
+  const activeFilters = mode === "catalog" ? (clusterFilters[selectedCluster] ?? []) : filters;
 
   function validate(): string[] {
     const errs: string[] = [];
