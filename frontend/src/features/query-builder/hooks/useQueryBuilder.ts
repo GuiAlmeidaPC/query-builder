@@ -42,13 +42,27 @@ export function useQueryBuilder() {
     "qb:clusterFilters:v2",
     defaultClusterBlocks,
   );
-  const [query, setQuery] = useState<string | null>(null);
+  const defaultClusterQueries: Record<ClusterKey, string | null> = {
+    cluster_01: null, cluster_02: null, cluster_03: null,
+    cluster_04: null, cluster_05: null, cluster_06: null,
+  };
+  const [clusterQueries, setClusterQueries] = useState<Record<ClusterKey, string | null>>(defaultClusterQueries);
+  const [manualQuery, setManualQuery] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const query = mode === "catalog" ? clusterQueries[selectedCluster] : manualQuery;
+
+  function setQuery(q: string | null) {
+    if (mode === "catalog") {
+      setClusterQueries((prev) => ({ ...prev, [selectedCluster]: q }));
+    } else {
+      setManualQuery(q);
+    }
+  }
+
   function switchCluster(cluster: ClusterKey) {
     setSelectedCluster(cluster);
-    setQuery(null);
     setErrors([]);
   }
 
