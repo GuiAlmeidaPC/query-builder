@@ -12,9 +12,8 @@ export function QueryBuilder() {
     mode, setMode,
     dialect, setDialect,
     fields, setFields,
-    filters, setFilters,
     selectedCluster, setSelectedCluster,
-    activeFilters, setActiveClusterFilters,
+    activeBlocks, setActiveBlocks,
     query,
     errors,
     loading,
@@ -46,8 +45,8 @@ export function QueryBuilder() {
         <hr className="border-gray-100" />
 
         <FilterList
-          filters={mode === "catalog" ? activeFilters : filters}
-          onChange={mode === "catalog" ? setActiveClusterFilters : setFilters}
+          blocks={activeBlocks}
+          onChange={setActiveBlocks}
           mode={mode}
           tables={TABLE_CATALOG}
         />

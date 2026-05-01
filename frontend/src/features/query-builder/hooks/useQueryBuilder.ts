@@ -5,8 +5,21 @@ import { generateId } from "../../../shared/utils/generateId";
 import { useLocalStorage } from "../../../shared/hooks/useLocalStorage";
 import { getFilterableColumns } from "../metadata/catalog";
 import { isListOp, isNullOp } from "../types";
-import type { BuilderMode, ClusterKey, FieldRow, FilterRow } from "../types";
+import type { BuilderMode, ClusterKey, FieldRow, FilterBlock, FilterRow } from "../types";
 import { CLUSTERS } from "../types";
+
+function emptyBlock(): FilterBlock {
+  return { id: generateId(), connector: "AND", filters: [] };
+}
+
+const defaultClusterBlocks: Record<ClusterKey, FilterBlock[]> = {
+  cluster_01: [emptyBlock()],
+  cluster_02: [emptyBlock()],
+  cluster_03: [emptyBlock()],
+  cluster_04: [emptyBlock()],
+  cluster_05: [emptyBlock()],
+  cluster_06: [emptyBlock()],
+};
 
 function parseValue(raw: string, operator: OperatorValue) {
   if (isNullOp(operator)) return undefined;
@@ -23,44 +36,49 @@ export function useQueryBuilder() {
   const [fields, setFields] = useState<FieldRow[]>([
     { id: generateId(), table: "", column: "" },
   ]);
-  const [filters, setFilters] = useState<FilterRow[]>([]);
-  const defaultClusterFilters: Record<ClusterKey, FilterRow[]> = {
-    cluster_01: [],
-    cluster_02: [],
-    cluster_03: [],
-    cluster_04: [],
-    cluster_05: [],
-    cluster_06: [],
-  };
+  const [manualBlocks, setManualBlocks] = useState<FilterBlock[]>([emptyBlock()]);
   const [selectedCluster, setSelectedCluster] = useLocalStorage<ClusterKey>("qb:selectedCluster", "cluster_01");
-  const [clusterFilters, setClusterFilters] = useLocalStorage<Record<ClusterKey, FilterRow[]>>(
-    "qb:clusterFilters",
-    defaultClusterFilters,
+  const [clusterBlocks, setClusterBlocks] = useLocalStorage<Record<ClusterKey, FilterBlock[]>>(
+    "qb:clusterFilters:v2",
+    defaultClusterBlocks,
   );
   const [query, setQuery] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  function setActiveClusterFilters(rows: FilterRow[]) {
-    setClusterFilters({ ...defaultClusterFilters, ...clusterFilters, [selectedCluster]: rows });
+  const activeBlocks: FilterBlock[] =
+    mode === "catalog"
+      ? (clusterBlocks[selectedCluster] ?? [emptyBlock()])
+      : manualBlocks;
+
+  function setActiveBlocks(blocks: FilterBlock[]) {
+    if (mode === "catalog") {
+      setClusterBlocks({ ...defaultClusterBlocks, ...clusterBlocks, [selectedCluster]: blocks });
+    } else {
+      setManualBlocks(blocks);
+    }
   }
 
-  const activeFilters = mode === "catalog" ? (clusterFilters[selectedCluster] ?? []) : filters;
+  function allFilterRows(): FilterRow[] {
+    return activeBlocks.flatMap((b) => b.filters);
+  }
 
   function validate(): string[] {
     const errs: string[] = [];
+    const allFilters = allFilterRows();
+
     if (mode === "catalog") {
-      if (activeFilters.length === 0) {
+      if (allFilters.length === 0) {
         errs.push("Add at least one filter.");
       }
-      for (const f of activeFilters) {
+      for (const f of allFilters) {
         if (!f.table.trim()) errs.push("A filter is missing a table selection.");
         if (!f.column.trim()) errs.push("A filter is missing a column selection.");
         if (f.table.trim() && f.column.trim()) {
-          const isKnownFilter = getFilterableColumns(f.table).some((column) => column.name === f.column);
+          const isKnownFilter = getFilterableColumns(f.table).some((col) => col.name === f.column);
           if (!isKnownFilter) errs.push(`"${f.table}.${f.column}" is not available in the catalog.`);
         }
-        if (!isNullOp(f.operator as OperatorValue) && !f.value.trim()) {
+        if (!isNullOp(f.operator) && !f.value.trim()) {
           errs.push(`Filter on "${f.table}.${f.column}" is missing a value.`);
         }
       }
@@ -71,13 +89,13 @@ export function useQueryBuilder() {
       errs.push("Every field must have a table and column.");
     }
     for (const f of fields) {
-      if (!f.table.trim()) errs.push(`A field is missing a table name.`);
-      if (!f.column.trim()) errs.push(`A field is missing a column name.`);
+      if (!f.table.trim()) errs.push("A field is missing a table name.");
+      if (!f.column.trim()) errs.push("A field is missing a column name.");
     }
-    for (const f of filters) {
+    for (const f of allFilters) {
       if (!f.table.trim()) errs.push("A filter is missing a table name.");
       if (!f.column.trim()) errs.push("A filter is missing a column name.");
-      if (!isNullOp(f.operator as OperatorValue) && !f.value.trim()) {
+      if (!isNullOp(f.operator) && !f.value.trim()) {
         errs.push(`Filter on "${f.table}.${f.column}" is missing a value.`);
       }
     }
@@ -92,20 +110,31 @@ export function useQueryBuilder() {
     }
     setErrors([]);
     setLoading(true);
+
+    const allFilters = allFilterRows();
+    const firstFilter = allFilters[0];
     const requestFields = mode === "catalog"
-      ? [{ table: activeFilters[0].table, column: "customer_id" }]
+      ? [{ table: firstFilter.table, column: "customer_id" }]
       : fields.map(({ table, column }) => ({ table, column }));
+
+    const filterGroups = activeBlocks
+      .filter((b) => b.filters.length > 0)
+      .map((b) => ({
+        connector: b.connector,
+        filters: b.filters.map((f) => ({
+          table: f.table,
+          column: f.column,
+          operator: f.operator,
+          value: parseValue(f.value, f.operator),
+          connector: f.connector,
+        })),
+      }));
 
     try {
       const res = await buildQuery({
         dialect,
         fields: requestFields,
-        filters: activeFilters.map((f) => ({
-          table: f.table,
-          column: f.column,
-          operator: f.operator,
-          value: parseValue(f.value, f.operator as OperatorValue),
-        })),
+        filter_groups: filterGroups,
       });
       const clusterLabel = CLUSTERS.find((c) => c.id === selectedCluster)?.label ?? selectedCluster;
       const prefix = mode === "catalog" ? `-- Query for ${clusterLabel}\n` : "";
@@ -128,13 +157,12 @@ export function useQueryBuilder() {
     mode, setMode,
     dialect, setDialect,
     fields, setFields,
-    filters, setFilters,
     selectedCluster, setSelectedCluster,
-    clusterFilters,
-    activeFilters, setActiveClusterFilters,
+    activeBlocks, setActiveBlocks,
     query,
     errors,
     loading,
     submit,
   };
 }
+

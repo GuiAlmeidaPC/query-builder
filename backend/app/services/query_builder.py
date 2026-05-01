@@ -5,7 +5,7 @@ from typing import List
 from app.dialects.athena import AthenaDialect
 from app.dialects.base import BaseDialect
 from app.dialects.sqlite import SQLiteDialect
-from app.schemas.query import Dialect, FieldModel, Filter, Operator, QueryRequest
+from app.schemas.query import Connector, Dialect, FieldModel, Filter, FilterGroup, Operator, QueryRequest
 
 _OPERATOR_MAP = {
     Operator.eq: "=",
@@ -23,10 +23,11 @@ def _get_dialect(dialect: Dialect) -> BaseDialect:
     return AthenaDialect() if dialect == Dialect.athena else SQLiteDialect()
 
 
-def _ordered_unique_tables(fields: List[FieldModel], filters: List[Filter]) -> List[str]:
+def _ordered_unique_tables(fields: List[FieldModel], groups: List[FilterGroup]) -> List[str]:
     seen: set[str] = set()
     tables: list[str] = []
-    for item in [*fields, *filters]:
+    all_filters = [f for g in groups for f in g.filters]
+    for item in [*fields, *all_filters]:
         if item.table not in seen:
             seen.add(item.table)
             tables.append(item.table)
@@ -67,23 +68,47 @@ def _build_condition(f: Filter, d: BaseDialect) -> str:
     return f"{col} {sql_op} {d.format_value(f.value)}"
 
 
-def _build_where(filters: List[Filter], d: BaseDialect) -> str:
-    if not filters:
+def _build_group(group: FilterGroup, d: BaseDialect) -> str:
+    """Build the condition expression for one filter group (without outer parens)."""
+    parts: list[str] = []
+    for i, f in enumerate(group.filters):
+        condition = _build_condition(f, d)
+        if i == 0:
+            parts.append(condition)
+        else:
+            parts.append(f"{f.connector.value} {condition}")
+    return " ".join(parts)
+
+
+def _build_where(groups: List[FilterGroup], d: BaseDialect) -> str:
+    if not groups:
         return ""
-    conditions = [_build_condition(f, d) for f in filters]
-    return "WHERE " + " AND ".join(conditions)
+
+    if len(groups) == 1:
+        return "WHERE " + _build_group(groups[0], d)
+
+    group_exprs: list[str] = []
+    for i, group in enumerate(groups):
+        expr = f"({_build_group(group, d)})"
+        if i == 0:
+            group_exprs.append(expr)
+        else:
+            group_exprs.append(f"{group.connector.value} {expr}")
+
+    return "WHERE " + " ".join(group_exprs)
 
 
 def build_query(request: QueryRequest) -> str:
     d = _get_dialect(request.dialect)
-    tables = _ordered_unique_tables(request.fields, request.filters)
+    groups = request.effective_filter_groups()
+    tables = _ordered_unique_tables(request.fields, groups)
 
     parts = [
         _build_select(request.fields, d),
         _build_from_and_joins(tables, d),
     ]
 
-    where = _build_where(request.filters, d)
+    where = _build_where(groups, d)
     if where:
         parts.append(where)
 

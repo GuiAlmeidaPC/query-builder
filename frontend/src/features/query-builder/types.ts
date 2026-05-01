@@ -1,4 +1,4 @@
-import type { OperatorValue } from "../../services/types";
+import type { ConnectorValue, OperatorValue } from "../../services/types";
 
 export type BuilderMode = "catalog" | "manual";
 
@@ -41,4 +41,11 @@ export interface FilterRow {
   column: string;
   operator: OperatorValue;
   value: string;
+  connector: ConnectorValue;
+}
+
+export interface FilterBlock {
+  id: string;
+  connector: ConnectorValue;
+  filters: FilterRow[];
 }

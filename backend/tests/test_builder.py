@@ -308,3 +308,203 @@ def test_validation_error_hides_internals():
     # Must not leak field paths or pydantic type names
     assert "loc" not in str(body)
     assert "type" not in str(body)
+
+
+# ---------------------------------------------------------------------------
+# filter_groups — OR / AND connectors and grouping
+# ---------------------------------------------------------------------------
+
+def test_single_group_or_connector():
+    result = post({
+        "dialect": "sqlite",
+        "fields": [{"table": "customers", "column": "customer_id"}],
+        "filter_groups": [
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "customers", "column": "country", "operator": "eq", "value": "BR"},
+                    {"table": "customers", "column": "city", "operator": "eq", "value": "SP", "connector": "OR"},
+                ],
+            }
+        ],
+    })
+    assert result["query"] == (
+        'SELECT "customers"."customer_id" FROM "customers" '
+        'WHERE "customers"."country" = \'BR\' OR "customers"."city" = \'SP\''
+    )
+
+
+def test_two_groups_or_between():
+    result = post({
+        "dialect": "sqlite",
+        "fields": [{"table": "customers", "column": "customer_id"}],
+        "filter_groups": [
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "customers", "column": "country", "operator": "eq", "value": "BR"},
+                ],
+            },
+            {
+                "connector": "OR",
+                "filters": [
+                    {"table": "customers", "column": "country", "operator": "eq", "value": "US"},
+                ],
+            },
+        ],
+    })
+    assert result["query"] == (
+        'SELECT "customers"."customer_id" FROM "customers" '
+        'WHERE ("customers"."country" = \'BR\') OR ("customers"."country" = \'US\')'
+    )
+
+
+def test_two_groups_and_between():
+    result = post({
+        "dialect": "sqlite",
+        "fields": [{"table": "customers", "column": "customer_id"}],
+        "filter_groups": [
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "customers", "column": "country", "operator": "eq", "value": "BR"},
+                ],
+            },
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "customers", "column": "is_active", "operator": "eq", "value": True},
+                ],
+            },
+        ],
+    })
+    assert result["query"] == (
+        'SELECT "customers"."customer_id" FROM "customers" '
+        'WHERE ("customers"."country" = \'BR\') AND ("customers"."is_active" = 1)'
+    )
+
+
+def test_two_groups_multi_filter_each():
+    result = post({
+        "dialect": "sqlite",
+        "fields": [{"table": "customers", "column": "customer_id"}],
+        "filter_groups": [
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "customers", "column": "country", "operator": "eq", "value": "BR"},
+                    {"table": "customers", "column": "city", "operator": "eq", "value": "SP", "connector": "AND"},
+                ],
+            },
+            {
+                "connector": "OR",
+                "filters": [
+                    {"table": "customers", "column": "country", "operator": "eq", "value": "US"},
+                    {"table": "customers", "column": "city", "operator": "eq", "value": "NY", "connector": "AND"},
+                ],
+            },
+        ],
+    })
+    assert result["query"] == (
+        'SELECT "customers"."customer_id" FROM "customers" '
+        'WHERE ("customers"."country" = \'BR\' AND "customers"."city" = \'SP\') '
+        'OR ("customers"."country" = \'US\' AND "customers"."city" = \'NY\')'
+    )
+
+
+def test_filter_groups_join_discovery():
+    """Tables from filter_groups must still be discovered for JOIN."""
+    result = post({
+        "dialect": "sqlite",
+        "fields": [{"table": "customers", "column": "customer_id"}],
+        "filter_groups": [
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "orders", "column": "amount", "operator": "gt", "value": 100},
+                ],
+            },
+        ],
+    })
+    assert "JOIN" in result["query"]
+    assert '"orders"' in result["query"]
+
+
+def test_legacy_filters_still_work_with_filter_groups_absent():
+    """Requests using old flat filters= still return the same result."""
+    result = post({
+        "dialect": "sqlite",
+        "fields": [{"table": "customers", "column": "customer_id"}],
+        "filters": [
+            {"table": "customers", "column": "country", "operator": "eq", "value": "BR"},
+        ],
+    })
+    assert "WHERE" in result["query"]
+    assert "BR" in result["query"]
+
+
+def test_filter_groups_takes_precedence_over_filters():
+    """When both filters and filter_groups are sent, filter_groups wins."""
+    result = post({
+        "dialect": "sqlite",
+        "fields": [{"table": "customers", "column": "customer_id"}],
+        "filters": [
+            {"table": "customers", "column": "country", "operator": "eq", "value": "IGNORED"},
+        ],
+        "filter_groups": [
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "customers", "column": "country", "operator": "eq", "value": "USED"},
+                ],
+            },
+        ],
+    })
+    assert "USED" in result["query"]
+    assert "IGNORED" not in result["query"]
+
+
+def test_too_many_filter_groups_returns_422():
+    result = client.post("/query/build", json={
+        "dialect": "sqlite",
+        "fields": [{"table": "t", "column": "c"}],
+        "filter_groups": [
+            {"connector": "AND", "filters": [{"table": "t", "column": "c", "operator": "eq", "value": "v"}]}
+            for _ in range(11)
+        ],
+    })
+    assert result.status_code == 422
+
+
+def test_too_many_total_filters_across_groups_returns_422():
+    result = client.post("/query/build", json={
+        "dialect": "sqlite",
+        "fields": [{"table": "t", "column": "c"}],
+        "filter_groups": [
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "t", "column": "c", "operator": "eq", "value": "v"}
+                    for _ in range(26)
+                ],
+            },
+            {
+                "connector": "AND",
+                "filters": [
+                    {"table": "t", "column": "c", "operator": "eq", "value": "v"}
+                    for _ in range(26)
+                ],
+            },
+        ],
+    })
+    assert result.status_code == 422
+
+
+def test_empty_filter_group_returns_422():
+    result = client.post("/query/build", json={
+        "dialect": "sqlite",
+        "fields": [{"table": "t", "column": "c"}],
+        "filter_groups": [{"connector": "AND", "filters": []}],
+    })
+    assert result.status_code == 422
+

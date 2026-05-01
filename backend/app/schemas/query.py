@@ -14,6 +14,11 @@ class Dialect(str, Enum):
     sqlite = "sqlite"
 
 
+class Connector(str, Enum):
+    AND = "AND"
+    OR = "OR"
+
+
 class Operator(str, Enum):
     eq = "eq"
     neq = "neq"
@@ -39,6 +44,7 @@ class Filter(BaseModel):
     column: str = Field(**IDENTIFIER_OPTS)
     operator: Operator
     value: Optional[Union[str, int, float, bool, List[Union[str, int, float]]]] = None
+    connector: Connector = Connector.AND
 
     @model_validator(mode="after")
     def validate_value(self) -> "Filter":
@@ -59,16 +65,37 @@ class Filter(BaseModel):
         return self
 
 
+class FilterGroup(BaseModel):
+    connector: Connector = Connector.AND
+    filters: List[Filter] = Field(..., min_length=1)
+
+
 class QueryRequest(BaseModel):
     dialect: Dialect
     fields: List[FieldModel] = Field(..., min_length=1, max_length=50)
     filters: List[Filter] = Field(default_factory=list, max_length=50)
+    filter_groups: List[FilterGroup] = Field(default_factory=list, max_length=10)
 
     @model_validator(mode="after")
     def at_least_one_field(self) -> "QueryRequest":
         if not self.fields:
             raise ValueError("at least one field is required")
         return self
+
+    @model_validator(mode="after")
+    def validate_total_filters(self) -> "QueryRequest":
+        total = sum(len(g.filters) for g in self.filter_groups)
+        if total > 50:
+            raise ValueError("total filters across all groups cannot exceed 50")
+        return self
+
+    def effective_filter_groups(self) -> List[FilterGroup]:
+        """Canonical filter groups, normalising legacy flat filters into one group."""
+        if self.filter_groups:
+            return self.filter_groups
+        if self.filters:
+            return [FilterGroup(connector=Connector.AND, filters=self.filters)]
+        return []
 
 
 class QueryResponse(BaseModel):

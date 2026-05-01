@@ -17,15 +17,23 @@ export const OPERATORS = [
 
 export type OperatorValue = (typeof OPERATORS)[number]["value"];
 
-export interface QueryRequest {
-  dialect: Dialect;
-  fields: { table: string; column: string }[];
+export type ConnectorValue = "AND" | "OR";
+
+export interface ApiFilterGroup {
+  connector: ConnectorValue;
   filters: {
     table: string;
     column: string;
     operator: string;
     value?: string | number | boolean | string[];
+    connector: ConnectorValue;
   }[];
+}
+
+export interface QueryRequest {
+  dialect: Dialect;
+  fields: { table: string; column: string }[];
+  filter_groups: ApiFilterGroup[];
 }
 
 export interface QueryResponse {
