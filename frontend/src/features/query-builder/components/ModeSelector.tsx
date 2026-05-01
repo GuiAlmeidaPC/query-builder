@@ -22,7 +22,7 @@ export function ModeSelector({ value, onChange }: Props) {
             onClick={() => onChange(mode.value)}
             className={`px-4 py-1.5 transition-colors cursor-pointer ${
               value === mode.value
-                ? "bg-violet-600 text-white"
+                ? "bg-blue-900 text-white"
                 : "bg-white text-gray-600 hover:bg-gray-50"
             }`}
           >

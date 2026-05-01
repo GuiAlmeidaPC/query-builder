@@ -87,7 +87,7 @@ function tokenize(query: string): Token[] {
 }
 
 const COLOR: Record<TokenType, string> = {
-  keyword:    "text-violet-600 font-semibold",
+  keyword:    "text-blue-900 font-semibold",
   string:     "text-emerald-600",
   number:     "text-amber-600",
   identifier: "text-sky-600",

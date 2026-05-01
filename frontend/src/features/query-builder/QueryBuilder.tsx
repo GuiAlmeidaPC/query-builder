@@ -65,7 +65,7 @@ export function QueryBuilder() {
           type="button"
           onClick={submit}
           disabled={loading}
-          className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors cursor-pointer"
+          className="w-full bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors cursor-pointer"
         >
           {loading ? "Building…" : "Build Query"}
         </button>

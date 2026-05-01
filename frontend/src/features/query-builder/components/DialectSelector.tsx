@@ -17,7 +17,7 @@ export function DialectSelector({ value, onChange }: Props) {
             onClick={() => onChange(d)}
             className={`px-4 py-1.5 transition-colors cursor-pointer ${
               value === d
-                ? "bg-violet-600 text-white"
+                ? "bg-blue-900 text-white"
                 : "bg-white text-gray-600 hover:bg-gray-50"
             }`}
           >

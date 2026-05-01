@@ -39,7 +39,7 @@ export function FieldList({ fields, onChange }: Props) {
           type="button"
           onClick={add}
           disabled={fields.length >= 50}
-          className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 text-sm text-blue-900 hover:text-blue-950 font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Plus size={15} />
           Add field
@@ -59,7 +59,7 @@ export function FieldList({ fields, onChange }: Props) {
                 value={f.table}
                 maxLength={MAX_LEN}
                 onChange={(e) => update(f.id, "table", e.target.value)}
-                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700"
               />
               <span className="hidden sm:inline text-gray-400 text-sm">.</span>
               <input
@@ -67,7 +67,7 @@ export function FieldList({ fields, onChange }: Props) {
                 value={f.column}
                 maxLength={MAX_LEN}
                 onChange={(e) => update(f.id, "column", e.target.value)}
-                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700"
               />
             </div>
             <button

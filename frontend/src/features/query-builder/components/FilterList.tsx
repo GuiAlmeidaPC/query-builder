@@ -36,7 +36,7 @@ function ConnectorToggle({
           onClick={() => onChange(opt)}
           className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors cursor-pointer ${
             value === opt
-              ? "bg-violet-600 text-white"
+              ? "bg-blue-900 text-white"
               : "bg-gray-100 text-gray-500 hover:bg-gray-200"
           }`}
         >
@@ -125,7 +125,7 @@ export function FilterList({ blocks, onChange, mode = "manual", tables = [] }: P
         <button
           type="button"
           onClick={addBlock}
-          className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 text-sm text-blue-900 hover:text-blue-950 font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           disabled={totalFilters >= 50}
         >
           <Plus size={15} />
@@ -195,7 +195,7 @@ export function FilterList({ blocks, onChange, mode = "manual", tables = [] }: P
                           <select
                             value={f.table}
                             onChange={(e) => updateFilter(block.id, f.id, "table", e.target.value)}
-                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 cursor-pointer"
+                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700 cursor-pointer"
                           >
                             <option value="">Table</option>
                             {tables.map((t) => (
@@ -208,7 +208,7 @@ export function FilterList({ blocks, onChange, mode = "manual", tables = [] }: P
                             value={f.table}
                             maxLength={MAX_LEN}
                             onChange={(e) => updateFilter(block.id, f.id, "table", e.target.value)}
-                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700"
                           />
                         )}
                         <span className="text-gray-400 text-sm">.</span>
@@ -217,7 +217,7 @@ export function FilterList({ blocks, onChange, mode = "manual", tables = [] }: P
                             value={f.column}
                             onChange={(e) => updateFilter(block.id, f.id, "column", e.target.value)}
                             disabled={!f.table}
-                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-100"
+                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-100"
                           >
                             <option value="">Column</option>
                             {filterableColumns(f.table).map((c) => (
@@ -230,7 +230,7 @@ export function FilterList({ blocks, onChange, mode = "manual", tables = [] }: P
                             value={f.column}
                             maxLength={MAX_LEN}
                             onChange={(e) => updateFilter(block.id, f.id, "column", e.target.value)}
-                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700"
                           />
                         )}
                       </div>
@@ -239,7 +239,7 @@ export function FilterList({ blocks, onChange, mode = "manual", tables = [] }: P
                         <select
                           value={f.operator}
                           onChange={(e) => updateFilter(block.id, f.id, "operator", e.target.value)}
-                          className="rounded-lg border border-gray-200 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white cursor-pointer"
+                          className="rounded-lg border border-gray-200 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700 bg-white cursor-pointer"
                         >
                           {OPERATORS.map((op) => (
                             <option key={op.value} value={op.value}>{op.label}</option>
@@ -251,7 +251,7 @@ export function FilterList({ blocks, onChange, mode = "manual", tables = [] }: P
                             placeholder={isListOp(f.operator) ? "val1, val2, ..." : "value"}
                             value={f.value}
                             onChange={(e) => updateFilter(block.id, f.id, "value", e.target.value)}
-                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700"
                           />
                         )}
                       </div>
@@ -273,7 +273,7 @@ export function FilterList({ blocks, onChange, mode = "manual", tables = [] }: P
                 type="button"
                 onClick={() => addFilter(block.id)}
                 disabled={totalFilters >= 50}
-                className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed mt-1 self-start"
+                className="flex items-center gap-1.5 text-sm text-blue-900 hover:text-blue-950 font-medium cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed mt-1 self-start"
               >
                 <Plus size={15} />
                 Add filter

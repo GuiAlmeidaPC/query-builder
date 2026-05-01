@@ -20,7 +20,7 @@ export function ClusterSelector({ value, onChange }: Props) {
             onClick={() => onChange(cluster.id)}
             className={`px-4 py-1.5 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${
               value === cluster.id
-                ? "bg-violet-600 text-white border-violet-600"
+                ? "bg-blue-900 text-white border-blue-900"
                 : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
             }`}
           >

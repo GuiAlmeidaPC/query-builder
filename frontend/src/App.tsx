@@ -6,7 +6,7 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
-          <div className="bg-violet-600 text-white p-2 rounded-xl">
+          <div className="bg-blue-900 text-white p-2 rounded-xl">
             <Database size={22} />
           </div>
           <div>
