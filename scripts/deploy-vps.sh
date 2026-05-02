@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 DEFAULT_GIT_BRANCH="${GIT_BRANCH:-master}"
 DEFAULT_REMOTE_PATH="${DEFAULT_REMOTE_PATH:-/srv/query-builder}"
-DEFAULT_BACKEND_RESTART_CMD="${BACKEND_RESTART_CMD:-export PATH="\$HOME/.local/bin:\$PATH"; PID_FILE=$DEFAULT_REMOTE_PATH/backend/uvicorn.pid; if [[ -f "\$PID_FILE" ]]; then kill \$(cat "\$PID_FILE") 2>/dev/null || true; sleep 2; fi; cd $DEFAULT_REMOTE_PATH/backend && nohup uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2 > uvicorn.log 2>&1 & echo \$! > "\$PID_FILE"}"
+DEFAULT_BACKEND_RESTART_CMD="${BACKEND_RESTART_CMD:-systemctl --user restart query-builder}"
 DEFAULT_FRONTEND_RESTART_CMD="${FRONTEND_RESTART_CMD:-sudo nginx -s reload}"
 
 prompt() {

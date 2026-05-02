@@ -70,13 +70,38 @@ sudo nginx -t && sudo nginx -s reload
 sudo certbot --nginx -d myapp.gapc10.tech
 ```
 
-### 5A. Start the backend
+### 5A. Install the backend as a systemd user service
+
+Create `~/.config/systemd/user/my-project.service`:
+
+```ini
+[Unit]
+Description=My Project – FastAPI/uvicorn backend
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/my-project/backend
+Environment="PATH=%h/.local/bin:/usr/bin:/bin"
+ExecStart=%h/.local/bin/uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+```
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
-cd /srv/my-project/backend
-nohup uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 --workers 2 > uvicorn.log 2>&1 &
-echo $! > uvicorn.pid
+mkdir -p ~/.config/systemd/user
+# (copy the file above)
+systemctl --user daemon-reload
+systemctl --user enable --now my-project
+loginctl enable-linger deploy   # makes user services survive logout/reboot
+```
+
+To restart the backend on deploy:
+
+```bash
+systemctl --user restart my-project
 ```
 
 ---
