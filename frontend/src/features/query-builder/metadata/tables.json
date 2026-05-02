@@ -14,60 +14,59 @@
     ]
   },
   {
-    "name": "orders",
-    "label": "Orders",
-    "description": "Commerce orders and fulfillment state.",
+    "name": "customer_commerce",
+    "label": "Customer commerce",
+    "description": "Aggregated commerce metrics per customer: order history and purchase behavior.",
     "category": "Commerce",
     "columns": [
       { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
-      { "name": "order_id", "label": "Order ID", "type": "string", "filterable": true },
-      { "name": "amount", "label": "Amount", "type": "number", "filterable": true },
-      { "name": "status", "label": "Status", "type": "string", "filterable": true },
-      { "name": "ordered_at", "label": "Ordered at", "type": "datetime", "filterable": true },
-      { "name": "cancelled_at", "label": "Cancelled at", "type": "datetime", "filterable": true }
+      { "name": "total_orders", "label": "Total orders", "type": "number", "filterable": true },
+      { "name": "total_revenue", "label": "Total revenue", "type": "number", "filterable": true },
+      { "name": "avg_order_value", "label": "Avg order value", "type": "number", "filterable": true },
+      { "name": "last_order_at", "label": "Last order at", "type": "datetime", "filterable": true },
+      { "name": "preferred_category", "label": "Preferred category", "type": "string", "filterable": true }
     ]
   },
   {
-    "name": "payments",
-    "label": "Payments",
-    "description": "Payment attempts, methods, and risk signals.",
+    "name": "customer_billing",
+    "label": "Customer billing",
+    "description": "Aggregated billing and payment behavior per customer.",
     "category": "Billing",
     "columns": [
       { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
-      { "name": "payment_method", "label": "Payment method", "type": "string", "filterable": true },
-      { "name": "payment_status", "label": "Payment status", "type": "string", "filterable": true },
-      { "name": "captured_amount", "label": "Captured amount", "type": "number", "filterable": true },
-      { "name": "risk_score", "label": "Risk score", "type": "number", "filterable": true },
-      { "name": "paid_at", "label": "Paid at", "type": "datetime", "filterable": true }
+      { "name": "preferred_payment_method", "label": "Preferred payment method", "type": "string", "filterable": true },
+      { "name": "total_paid", "label": "Total paid", "type": "number", "filterable": true },
+      { "name": "failed_payment_count", "label": "Failed payment count", "type": "number", "filterable": true },
+      { "name": "last_payment_at", "label": "Last payment at", "type": "datetime", "filterable": true },
+      { "name": "credit_tier", "label": "Credit tier", "type": "string", "filterable": true }
     ]
   },
   {
-    "name": "subscriptions",
-    "label": "Subscriptions",
-    "description": "Plan, renewal, and churn status for recurring customers.",
-    "category": "Lifecycle",
+    "name": "customer_engagement",
+    "label": "Customer engagement",
+    "description": "Activity and engagement metrics per customer.",
+    "category": "Engagement",
     "columns": [
       { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
-      { "name": "plan_tier", "label": "Plan tier", "type": "string", "filterable": true },
-      { "name": "billing_cycle", "label": "Billing cycle", "type": "string", "filterable": true },
-      { "name": "monthly_recurring_revenue", "label": "Monthly recurring revenue", "type": "number", "filterable": true },
-      { "name": "renewal_date", "label": "Renewal date", "type": "date", "filterable": true },
-      { "name": "churned_at", "label": "Churned at", "type": "datetime", "filterable": true }
+      { "name": "last_login_at", "label": "Last login at", "type": "datetime", "filterable": true },
+      { "name": "total_sessions", "label": "Total sessions", "type": "number", "filterable": true },
+      { "name": "avg_session_minutes", "label": "Avg session minutes", "type": "number", "filterable": true },
+      { "name": "nps_score", "label": "NPS score", "type": "number", "filterable": true },
+      { "name": "preferred_channel", "label": "Preferred channel", "type": "string", "filterable": true }
     ]
   },
   {
-    "name": "support_tickets",
-    "label": "Support tickets",
-    "description": "Support volume, sentiment, and escalation history.",
-    "category": "Support",
+    "name": "customer_risk",
+    "label": "Customer risk",
+    "description": "Risk and fraud assessment per customer.",
+    "category": "Risk",
     "columns": [
       { "name": "customer_id", "label": "Customer ID", "type": "string", "filterable": false },
-      { "name": "ticket_id", "label": "Ticket ID", "type": "string", "filterable": true },
-      { "name": "topic", "label": "Topic", "type": "string", "filterable": true },
-      { "name": "priority", "label": "Priority", "type": "string", "filterable": true },
-      { "name": "sentiment", "label": "Sentiment", "type": "string", "filterable": true },
-      { "name": "first_response_minutes", "label": "First response minutes", "type": "number", "filterable": true },
-      { "name": "resolved_at", "label": "Resolved at", "type": "datetime", "filterable": true }
+      { "name": "fraud_score", "label": "Fraud score", "type": "number", "filterable": true },
+      { "name": "chargeback_count", "label": "Chargeback count", "type": "number", "filterable": true },
+      { "name": "risk_tier", "label": "Risk tier", "type": "string", "filterable": true },
+      { "name": "last_reviewed_at", "label": "Last reviewed at", "type": "datetime", "filterable": true },
+      { "name": "is_flagged", "label": "Is flagged", "type": "boolean", "filterable": true }
     ]
   }
 ]

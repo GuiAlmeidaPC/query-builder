@@ -26,24 +26,24 @@ def test_single_table_no_filters():
     result = post({
         "dialect": "sqlite",
         "fields": [
-            {"table": "orders", "column": "order_id"},
-            {"table": "orders", "column": "amount"},
+            {"table": "customer_commerce", "column": "total_orders"},
+            {"table": "customer_commerce", "column": "total_revenue"},
         ],
     })
     assert result["query"] == (
-        'SELECT "orders"."order_id", "orders"."amount" FROM "orders"'
+        'SELECT "customer_commerce"."total_orders", "customer_commerce"."total_revenue" FROM "customer_commerce"'
     )
 
 
 def test_single_table_eq_filter():
     result = post({
         "dialect": "sqlite",
-        "fields": [{"table": "orders", "column": "amount"}],
-        "filters": [{"table": "orders", "column": "status", "operator": "eq", "value": "paid"}],
+        "fields": [{"table": "customer_commerce", "column": "total_revenue"}],
+        "filters": [{"table": "customer_commerce", "column": "preferred_category", "operator": "eq", "value": "electronics"}],
     })
     assert result["query"] == (
-        "SELECT \"orders\".\"amount\" FROM \"orders\" "
-        "WHERE \"orders\".\"status\" = 'paid'"
+        'SELECT "customer_commerce"."total_revenue" FROM "customer_commerce" '
+        "WHERE \"customer_commerce\".\"preferred_category\" = 'electronics'"
     )
 
 
@@ -59,37 +59,37 @@ def test_numeric_operators():
 def test_in_operator():
     result = post({
         "dialect": "sqlite",
-        "fields": [{"table": "orders", "column": "order_id"}],
-        "filters": [{"table": "orders", "column": "status", "operator": "in", "value": ["paid", "pending"]}],
+        "fields": [{"table": "customer_billing", "column": "customer_id"}],
+        "filters": [{"table": "customer_billing", "column": "credit_tier", "operator": "in", "value": ["gold", "platinum"]}],
     })
-    assert "IN ('paid', 'pending')" in result["query"]
+    assert "IN ('gold', 'platinum')" in result["query"]
 
 
 def test_not_in_operator():
     result = post({
         "dialect": "sqlite",
-        "fields": [{"table": "orders", "column": "order_id"}],
-        "filters": [{"table": "orders", "column": "status", "operator": "not_in", "value": ["cancelled"]}],
+        "fields": [{"table": "customer_billing", "column": "customer_id"}],
+        "filters": [{"table": "customer_billing", "column": "credit_tier", "operator": "not_in", "value": ["suspended"]}],
     })
-    assert "NOT IN ('cancelled')" in result["query"]
+    assert "NOT IN ('suspended')" in result["query"]
 
 
 def test_is_null():
     result = post({
         "dialect": "sqlite",
-        "fields": [{"table": "orders", "column": "order_id"}],
-        "filters": [{"table": "orders", "column": "deleted_at", "operator": "is_null"}],
+        "fields": [{"table": "customer_commerce", "column": "customer_id"}],
+        "filters": [{"table": "customer_commerce", "column": "last_order_at", "operator": "is_null"}],
     })
-    assert '"orders"."deleted_at" IS NULL' in result["query"]
+    assert '"customer_commerce"."last_order_at" IS NULL' in result["query"]
 
 
 def test_is_not_null():
     result = post({
         "dialect": "sqlite",
-        "fields": [{"table": "orders", "column": "order_id"}],
-        "filters": [{"table": "orders", "column": "confirmed_at", "operator": "is_not_null"}],
+        "fields": [{"table": "customer_commerce", "column": "customer_id"}],
+        "filters": [{"table": "customer_commerce", "column": "last_order_at", "operator": "is_not_null"}],
     })
-    assert '"orders"."confirmed_at" IS NOT NULL' in result["query"]
+    assert '"customer_commerce"."last_order_at" IS NOT NULL' in result["query"]
 
 
 def test_like_operator():
@@ -113,10 +113,10 @@ def test_not_like_operator():
 def test_multiple_filters():
     result = post({
         "dialect": "sqlite",
-        "fields": [{"table": "orders", "column": "order_id"}],
+        "fields": [{"table": "customer_commerce", "column": "customer_id"}],
         "filters": [
-            {"table": "orders", "column": "amount", "operator": "gt", "value": 100},
-            {"table": "orders", "column": "status", "operator": "eq", "value": "paid"},
+            {"table": "customer_commerce", "column": "total_revenue", "operator": "gt", "value": 100},
+            {"table": "customer_commerce", "column": "preferred_category", "operator": "eq", "value": "electronics"},
         ],
     })
     assert "WHERE" in result["query"]
@@ -131,35 +131,35 @@ def test_two_table_join():
     result = post({
         "dialect": "sqlite",
         "fields": [
-            {"table": "orders", "column": "amount"},
+            {"table": "customer_commerce", "column": "total_revenue"},
             {"table": "customers", "column": "name"},
         ],
     })
     query = result["query"]
-    assert 'FROM "orders"' in query
+    assert 'FROM "customer_commerce"' in query
     assert 'JOIN "customers"' in query
-    assert '"orders"."customer_id" = "customers"."customer_id"' in query
+    assert '"customer_commerce"."customer_id" = "customers"."customer_id"' in query
 
 
 def test_three_table_join():
     result = post({
         "dialect": "athena",
         "fields": [
-            {"table": "orders", "column": "amount"},
+            {"table": "customer_commerce", "column": "total_revenue"},
             {"table": "customers", "column": "email"},
-            {"table": "payments", "column": "method"},
+            {"table": "customer_billing", "column": "preferred_payment_method"},
         ],
     })
     query = result["query"]
-    assert 'FROM "orders"' in query
+    assert 'FROM "customer_commerce"' in query
     assert 'JOIN "customers"' in query
-    assert 'JOIN "payments"' in query
+    assert 'JOIN "customer_billing"' in query
 
 
 def test_join_triggered_by_filter_table():
     result = post({
         "dialect": "sqlite",
-        "fields": [{"table": "orders", "column": "amount"}],
+        "fields": [{"table": "customer_commerce", "column": "total_revenue"}],
         "filters": [{"table": "customers", "column": "country", "operator": "eq", "value": "BR"}],
     })
     query = result["query"]
@@ -189,8 +189,8 @@ def test_sqlite_uses_double_quotes():
 def test_string_escaping():
     result = post({
         "dialect": "sqlite",
-        "fields": [{"table": "orders", "column": "order_id"}],
-        "filters": [{"table": "orders", "column": "note", "operator": "eq", "value": "it's here"}],
+        "fields": [{"table": "customer_commerce", "column": "customer_id"}],
+        "filters": [{"table": "customer_commerce", "column": "preferred_category", "operator": "eq", "value": "it's here"}],
     })
     assert "= 'it''s here'" in result["query"]
 
@@ -240,7 +240,7 @@ def test_invalid_table_name_returns_422():
 
 
 def test_invalid_column_name_returns_422():
-    post_error({"dialect": "sqlite", "fields": [{"table": "orders", "column": "123bad"}]})
+    post_error({"dialect": "sqlite", "fields": [{"table": "customer_commerce", "column": "123bad"}]})
 
 
 def test_table_name_too_long_returns_422():
@@ -421,13 +421,13 @@ def test_filter_groups_join_discovery():
             {
                 "connector": "AND",
                 "filters": [
-                    {"table": "orders", "column": "amount", "operator": "gt", "value": 100},
+                    {"table": "customer_commerce", "column": "total_revenue", "operator": "gt", "value": 100},
                 ],
             },
         ],
     })
     assert "JOIN" in result["query"]
-    assert '"orders"' in result["query"]
+    assert '"customer_commerce"' in result["query"]
 
 
 def test_legacy_filters_still_work_with_filter_groups_absent():
