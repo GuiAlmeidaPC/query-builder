@@ -23,12 +23,17 @@ log() {
 run_restart_command() {
   local label="$1"
   local command="$2"
+  local optional="${3:-0}"
   if [[ -z "$command" ]]; then
     return 0
   fi
 
   log "$label"
-  bash -lc "$command"
+  if [[ "$optional" == "1" ]]; then
+    bash -lc "$command" || printf '[warn] %s command failed (non-fatal)\n' "$label"
+  else
+    bash -lc "$command"
+  fi
 }
 
 log "Deploying query-builder from $ROOT_DIR"
@@ -65,6 +70,8 @@ log "Building frontend"
 npm run build
 
 run_restart_command "Restarting backend" "$BACKEND_RESTART_CMD"
-run_restart_command "Restarting frontend" "$FRONTEND_RESTART_CMD"
+# Frontend restart (e.g. nginx reload) is optional — static files are served
+# directly from disk so a reload is only needed when nginx config changes.
+run_restart_command "Restarting frontend" "$FRONTEND_RESTART_CMD" "1"
 
 log "Deploy complete"
